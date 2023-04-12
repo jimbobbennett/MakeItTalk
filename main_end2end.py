@@ -70,7 +70,7 @@ device = "mps"
 
 ''' STEP 1: preprocess input single image '''
 img =cv2.imread('examples/' + opt_parser.jpg)
-predictor = face_alignment.FaceAlignment(face_alignment.LandmarksType._3D, device=device, flip_input=True)
+predictor = face_alignment.FaceAlignment(face_alignment.LandmarksType.THREE_D, device=device, flip_input=True)
 shapes = predictor.get_landmarks(img)
 if (not shapes or len(shapes) != 1):
     print('Cannot detect face landmarks. Exit.')
@@ -98,7 +98,7 @@ shape_3d, scale, shift = util.norm_input_face(shape_3d)
 au_data = []
 au_emb = []
 ains = glob.glob1('examples', '*.wav')
-ains = [item for item in ains if item is not 'tmp.wav']
+ains = [item for item in ains if item !='tmp.wav']
 ains.sort()
 for ain in ains:
     os.system('ffmpeg -y -loglevel error -i examples/{} -ar 16000 examples/tmp.wav'.format(ain))
