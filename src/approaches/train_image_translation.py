@@ -24,7 +24,7 @@ from thirdparty.AdaptiveWingLoss.utils.utils import get_preds_fromhm
 
 import face_alignment
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 class Image_translation_block():
 
@@ -42,7 +42,7 @@ class Image_translation_block():
             self.G = ResUnetGenerator(input_nc=6, output_nc=3, num_downs=6, use_dropout=False)
 
         if (opt_parser.load_G_name != ''):
-            ckpt = torch.load(opt_parser.load_G_name)
+            ckpt = torch.load(opt_parser.load_G_name, map_location=torch.device('mps'))
             try:
                 self.G.load_state_dict(ckpt['G'])
             except:
@@ -104,10 +104,10 @@ class Image_translation_block():
             END_RELU = False
             NUM_LANDMARKS = 98
 
-            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            self.device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
             model_ft = models.FAN(HG_BLOCKS, END_RELU, GRAY_SCALE, NUM_LANDMARKS)
 
-            checkpoint = torch.load(PRETRAINED_WEIGHTS)
+            checkpoint = torch.load(PRETRAINED_WEIGHTS, map_location=torch.device('mps'))
             if 'state_dict' not in checkpoint:
                 model_ft.load_state_dict(checkpoint)
             else:
@@ -130,11 +130,11 @@ class Image_translation_block():
             if(opt_parser.comb_fan_awing):
                 if(opt_parser.fan_2or3D == '2D'):
                     self.predictor = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D,
-                                                                  device='cuda' if torch.cuda.is_available() else "cpu",
+                                                                  device='mps' if torch.backends.mps.is_available() else "cpu",
                                                                   flip_input=True)
                 else:
                     self.predictor = face_alignment.FaceAlignment(face_alignment.LandmarksType._3D,
-                                                                  device='cuda' if torch.cuda.is_available() else "cpu",
+                                                                  device='mps' if torch.backends.mps.is_available() else "cpu",
                                                                   flip_input=True)
 
     def __train_pass__(self, epoch, is_training=True):
@@ -398,7 +398,11 @@ class Image_translation_block():
                                   torch.tensor(image_out, requires_grad=False)
 
             image_in, image_out = image_in.reshape(-1, 6, 256, 256), image_out.reshape(-1, 3, 256, 256)
-            image_in, image_out = image_in.to(device), image_out.to(device)
+
+            if device.type == "mps":
+                image_in, image_out = image_in.to(torch.device("cpu")).float().to(device), image_out.to(torch.device("cpu")).float().to(device)
+            else:
+                image_in, image_out = image_in.to(device), image_out.to(device)
 
             g_out = self.G(image_in)
             g_out = torch.tanh(g_out)

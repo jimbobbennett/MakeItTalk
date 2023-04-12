@@ -23,7 +23,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 from scipy.signal import savgol_filter
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 class Speaker_aware_branch():
 
@@ -86,7 +86,7 @@ class Speaker_aware_branch():
 
         if (opt_parser.load_a2l_G_name.split('/')[-1] != ''):
             model_dict = self.G.state_dict()
-            ckpt = torch.load(opt_parser.load_a2l_G_name)
+            ckpt = torch.load(opt_parser.load_a2l_G_name, map_location=torch.device('mps'))
             pretrained_dict = {k: v for k, v in ckpt['G'].items()
                                if 'out.' not in k and 'out_pos_1.' not in k}
             model_dict.update(pretrained_dict)

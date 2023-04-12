@@ -19,7 +19,7 @@ from util.utils import Record
 from util.icp import icp
 import numpy as np
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 
 class Audio2landmark_model():
@@ -64,7 +64,7 @@ class Audio2landmark_model():
                                       bidirectional=False, drop_out=opt_parser.drop_out)
 
         if(opt_parser.load_a2l_C_name.split('/')[-1] != ''):
-            ckpt = torch.load(opt_parser.load_a2l_C_name)
+            ckpt = torch.load(opt_parser.load_a2l_C_name, map_location=torch.device('mps'))
             self.C.load_state_dict(ckpt['model_g_face_id'])
             print('======== LOAD PRETRAINED CONTENT BRANCH MODEL {} ========='.format(opt_parser.load_a2l_C_name))
         self.C.to(device)

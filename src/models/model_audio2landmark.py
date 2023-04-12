@@ -17,7 +17,7 @@ import torch.nn.functional as F
 import copy
 import numpy as np
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 AUDIO_FEAT_SIZE = 161
 FACE_ID_FEAT_SIZE = 204
@@ -242,7 +242,7 @@ class DecoderLayer(nn.Module):
 
         self.attn_1 = MultiHeadAttention(heads, d_model)
         self.attn_2 = MultiHeadAttention(heads, d_model)
-        self.ff = FeedForward(d_model).cuda()
+        self.ff = FeedForward(d_model) # .cuda()
 
     def forward(self, x, e_outputs, src_mask, trg_mask):
         x2 = self.norm_1(x)
